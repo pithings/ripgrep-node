@@ -6,11 +6,8 @@
 
 ```sh
 npx ripgrep TODO src/
-```
 
-Or install globally:
-
-```sh
+# or install globally
 npm i -g ripgrep
 rg TODO src/
 ```
@@ -18,10 +15,15 @@ rg TODO src/
 ## Programmatic API
 
 ```js
-import { ripgrep } from "ripgrep";
+import { ripgrep, rgPath } from "ripgrep";
 
+// Run ripgrep programmatically
 const { code } = await ripgrep(["--json", "TODO", "src"]);
 // 0 = matches found, 1 = no matches, 2 = error
+
+// Or spawn as a child process (drop-in for vscode-ripgrep)
+import { spawn } from "node:child_process";
+spawn(rgPath, ["TODO", "src"], { stdio: "inherit" });
 ```
 
 ### `ripgrep(args, options)`
@@ -37,14 +39,7 @@ Options:
 
 ### `rgPath`
 
-Absolute filesystem path to a JS shim that runs ripgrep via `ripgrep`. Drop-in replacement for `rgPath` from `vscode-ripgrep` / `@vscode/ripgrep`-style consumers that spawn the binary directly:
-
-```js
-import { spawn } from "node:child_process";
-import { rgPath } from "ripgrep";
-
-spawn(rgPath, ["TODO", "src"], { stdio: "inherit" });
-```
+Absolute filesystem path to a JS shim that runs ripgrep via `ripgrep`. Drop-in replacement for `rgPath` from `vscode-ripgrep` / `@vscode/ripgrep`-style consumers that spawn the binary directly.
 
 ## How it works
 
