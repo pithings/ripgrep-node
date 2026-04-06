@@ -18,12 +18,15 @@
   ],
   "scripts": {
     "build": "zig build wasi && node build.ts",
+    "test": "vitest run",
     "fmt": "oxfmt lib",
     "rg": "./lib/rg.mjs"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "4.1.2",
     "mitata": "^1.0.34",
     "oxfmt": "^0.43.0",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "vitest": "^4.1.2"
   }
 }

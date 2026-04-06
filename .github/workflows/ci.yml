@@ -66,17 +66,22 @@ jobs:
         with:
           node-version: lts/*
 
+      - uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Test (Node)
-        run: node test.ts
+        run: pnpm vitest run
 
       - uses: oven-sh/setup-bun@v2
 
       - name: Test (Bun)
-        run: bun --bun test.ts
+        run: bunx vitest run
 
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
       - name: Test (Deno)
-        run: deno run --allow-read --allow-env test.ts
+        run: deno run -A ./node_modules/vitest/vitest.mjs run
