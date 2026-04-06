@@ -1,6 +1,6 @@
 {
   "name": "ripgrep",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": "pithings/ripgrep",
   "license": "MIT",
   "sideEffects": false,
