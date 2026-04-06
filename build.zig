@@ -75,6 +75,11 @@ fn addRipgrepBuild(b: *std.Build, rust_triple: []const u8) RipgrepBuild {
     const target_dir = b.pathJoin(&.{ cache_root, "cargo-target", rust_triple });
     cargo.setEnvironmentVariable("CARGO_TARGET_DIR", target_dir);
 
+    // Enable WASM SIMD for wasm targets — unlocks memchr's simd128 vectorized paths.
+    if (std.mem.startsWith(u8, rust_triple, "wasm")) {
+        cargo.setEnvironmentVariable("RUSTFLAGS", "-C target-feature=+simd128");
+    }
+
     const exe_name = b.fmt("rg{s}", .{binExt(rust_triple)});
     const rg_path_str = b.pathJoin(&.{ target_dir, rust_triple, profile, exe_name });
     return .{

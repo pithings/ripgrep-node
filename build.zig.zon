@@ -1,7 +1,7 @@
 .{
     .name = .ripgrep,
     .version = "0.0.0",
-    .fingerprint = 0x36520762f52ee133,
+    .fingerprint = 0x89b93d7bd4e75448,
     .minimum_zig_version = "0.15.2",
     .paths = .{ "build.zig", "build.zig.zon" },
 }

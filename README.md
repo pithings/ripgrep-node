@@ -43,7 +43,7 @@ Absolute filesystem path to a JS shim that runs ripgrep via `ripgrep`. Drop-in r
 
 ## How it works
 
-- ripgrep is cross-compiled to `wasm32-wasip1` via [`cargo zigbuild`](https://github.com/rust-cross/cargo-zigbuild), using Zig as the C compiler/linker.
+- ripgrep is cross-compiled to `wasm32-wasip1` with SIMD (`simd128`) enabled via [`cargo zigbuild`](https://github.com/rust-cross/cargo-zigbuild), using Zig as the C compiler/linker. This unlocks `memchr`'s vectorized search routines for faster byte scanning.
 - The resulting `.wasm` is brotli-compressed and z85-encoded into `lib/_rg.wasm.mjs`, so it ships as a plain ESM module — no `.wasm` asset resolution or postinstall needed.
 - On first use, the z85 blob is decoded and decompressed, then cached to the OS temp directory (`$TMPDIR/ripgrep-wasm-<hash>.wasm`). Subsequent calls (even across processes) skip decoding entirely. The z85 string itself is wrapped in a function so V8 lazy-parses it only when needed.
 - The compiled `WebAssembly.Module` is memoized in-process — repeated `ripgrep()` calls only pay the compilation cost once. Fresh instances are still created per-call since WASI state (memory, file descriptors) is per-instance.
