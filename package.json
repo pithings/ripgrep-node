@@ -1,7 +1,7 @@
 {
   "name": "ripgrep",
   "version": "0.2.0",
-  "repository": "pithings/ripgrep",
+  "repository": "pithings/ripgrep-node",
   "license": "MIT",
   "sideEffects": false,
   "type": "module",
