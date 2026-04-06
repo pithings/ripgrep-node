@@ -72,11 +72,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Test (Bun)
-        run: bun test.ts
+        run: bun --bun test.ts
 
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
 
       - name: Test (Deno)
-        run: deno run --allow-read --allow-write --allow-env test.ts
+        run: deno run --allow-read --allow-env test.ts
