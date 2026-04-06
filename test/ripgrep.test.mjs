@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ripgrep, rgPath } from "../lib/index.mjs";
+import * as fs from "node:fs";
 import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 
@@ -134,6 +135,135 @@ describe("ripgrep", () => {
     });
     expect(res.code).toBe(0);
     expect(res.stdout).toContain("hello ripgrep world");
+  });
+});
+
+describe("ripgrep (vfs)", () => {
+  it("searches using a custom vfs", async () => {
+    const virtualFiles = {
+      "/vfs/hello.txt": "hello from virtual filesystem\n",
+    };
+    const vfs = {
+      readdirSync(dirPath, opts) {
+        if (dirPath in virtualDirs()) {
+          const entries = virtualDirs()[dirPath];
+          if (opts?.withFileTypes) {
+            return entries.map((name) => ({
+              name,
+              isFile: () => !name.endsWith("/"),
+              isDirectory: () => name.endsWith("/"),
+              isSymbolicLink: () => false,
+              isBlockDevice: () => false,
+              isCharacterDevice: () => false,
+            }));
+          }
+          return entries;
+        }
+        return fs.readdirSync(dirPath, opts);
+      },
+      statSync(filePath, opts) {
+        if (filePath in virtualFiles) {
+          const size = Buffer.byteLength(virtualFiles[filePath]);
+          const s = {
+            isFile: () => true,
+            isDirectory: () => false,
+            isSymbolicLink: () => false,
+            isBlockDevice: () => false,
+            isCharacterDevice: () => false,
+            dev: opts?.bigint ? 0n : 0,
+            ino: opts?.bigint ? 0n : 0,
+            nlink: opts?.bigint ? 1n : 1,
+            size: opts?.bigint ? BigInt(size) : size,
+            atimeNs: opts?.bigint ? 0n : undefined,
+            mtimeNs: opts?.bigint ? 0n : undefined,
+            ctimeNs: opts?.bigint ? 0n : undefined,
+          };
+          return s;
+        }
+        if (filePath === "/vfs") {
+          return {
+            isFile: () => false,
+            isDirectory: () => true,
+            isSymbolicLink: () => false,
+            isBlockDevice: () => false,
+            isCharacterDevice: () => false,
+            dev: opts?.bigint ? 0n : 0,
+            ino: opts?.bigint ? 0n : 0,
+            nlink: opts?.bigint ? 1n : 1,
+            size: opts?.bigint ? 0n : 0,
+            atimeNs: opts?.bigint ? 0n : undefined,
+            mtimeNs: opts?.bigint ? 0n : undefined,
+            ctimeNs: opts?.bigint ? 0n : undefined,
+          };
+        }
+        return fs.statSync(filePath, opts);
+      },
+      lstatSync(filePath, opts) {
+        return this.statSync(filePath, opts);
+      },
+      openSync(filePath, flags) {
+        if (filePath in virtualFiles) {
+          // Use a high fd number to avoid collisions
+          const fd = 1000 + Object.keys(virtualFiles).indexOf(filePath);
+          vfs._openFiles = vfs._openFiles || {};
+          vfs._openFiles[fd] = { path: filePath, pos: 0 };
+          return fd;
+        }
+        return fs.openSync(filePath, flags);
+      },
+      closeSync(fd) {
+        if (vfs._openFiles?.[fd]) {
+          delete vfs._openFiles[fd];
+          return;
+        }
+        return fs.closeSync(fd);
+      },
+      readSync(fd, buffer, offset, length, position) {
+        if (vfs._openFiles?.[fd]) {
+          const f = vfs._openFiles[fd];
+          const content = Buffer.from(virtualFiles[f.path]);
+          const pos = position != null ? position : f.pos;
+          const n = Math.min(length, content.length - pos);
+          if (n <= 0) return 0;
+          content.copy(buffer, offset, pos, pos + n);
+          f.pos = pos + n;
+          return n;
+        }
+        return fs.readSync(fd, buffer, offset, length, position);
+      },
+      fstatSync(fd, opts) {
+        if (vfs._openFiles?.[fd]) {
+          return this.statSync(vfs._openFiles[fd].path, opts);
+        }
+        return fs.fstatSync(fd, opts);
+      },
+    };
+
+    function virtualDirs() {
+      return { "/vfs": ["hello.txt"] };
+    }
+
+    const res = await ripgrep(["hello", "/vfs"], {
+      buffer: true,
+      preopens: { "/vfs": "/vfs" },
+      vfs,
+    });
+    expect(res.code).toBe(0);
+    expect(res.stdout).toContain("hello from virtual filesystem");
+  });
+
+  it("falls back to real fs for methods not on vfs", async () => {
+    const calls = [];
+    const vfs = {
+      statSync(filePath, opts) {
+        calls.push(filePath);
+        return fs.statSync(filePath, opts);
+      },
+    };
+    const res = await ripgrep(["hello", HELLO], { buffer: true, vfs });
+    expect(res.code).toBe(0);
+    expect(res.stdout).toContain("hello ripgrep world");
+    expect(calls.length).toBeGreaterThan(0);
   });
 });
 
