@@ -50,6 +50,36 @@ export type RgFlag =
 export type RgArg = RgFlag | (string & {});
 
 /**
+ * Virtual filesystem interface for the custom WASI shim.
+ * All methods mirror their `node:fs` equivalents. Only the methods
+ * ripgrep actually calls need to be implemented — missing methods
+ * fall back to the real `node:fs`.
+ */
+export interface RipgrepVfs {
+  openSync?(path: string, flags: number): number;
+  closeSync?(fd: number): void;
+  readSync?(
+    fd: number,
+    buffer: Buffer,
+    offset: number,
+    length: number,
+    position: number | null,
+  ): number;
+  writeSync?(
+    fd: number,
+    buffer: Uint8Array,
+    offset: number,
+    length: number,
+    position: number | null,
+  ): number;
+  fstatSync?(fd: number, options?: { bigint?: boolean }): any;
+  statSync?(path: string, options?: { bigint?: boolean }): any;
+  lstatSync?(path: string, options?: { bigint?: boolean }): any;
+  readdirSync?(path: string, options?: { withFileTypes?: boolean }): any[];
+  readlinkSync?(path: string): string;
+}
+
+/**
  * Options for {@link ripgrep}.
  */
 export interface ripgrepOptions {
@@ -101,6 +131,14 @@ export interface ripgrepOptions {
    * @default false
    */
   nodeWasi?: boolean;
+
+  /**
+   * Custom virtual filesystem for the WASI shim. When provided, the
+   * custom WASI shim is always used (regardless of `nodeWasi`).
+   * Only the methods ripgrep calls need to be implemented — missing
+   * methods fall back to the real `node:fs`.
+   */
+  vfs?: RipgrepVfs;
 }
 
 /**
