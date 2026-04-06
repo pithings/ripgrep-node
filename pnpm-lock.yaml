@@ -8,11 +8,17 @@ importers:
 
   .:
     devDependencies:
+      mitata:
+        specifier: ^1.0.34
+        version: 1.0.34
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
 
 packages:
+
+  mitata@1.0.34:
+    resolution: {integrity: sha512-Mc3zrtNBKIMeHSCQ0XqRLo1vbdIx1wvFV9c8NJAiyho6AjNfMY8bVhbS12bwciUdd1t4rj8099CH3N3NFahaUA==}
 
   prettier@3.8.1:
     resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
@@ -20,5 +26,7 @@ packages:
     hasBin: true
 
 snapshots:
+
+  mitata@1.0.34: {}
 
   prettier@3.8.1: {}

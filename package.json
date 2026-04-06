@@ -21,6 +21,7 @@
     "lib"
   ],
   "devDependencies": {
+    "mitata": "^1.0.34",
     "prettier": "^3.8.1"
   }
 }
