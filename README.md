@@ -39,7 +39,9 @@ Options:
 - `stderr` — writable stream to use instead of `process.stderr`. With `nodeWasi`, only streams with a numeric `fd` property are supported.
 - `buffer` — when `true`, capture stdout and stderr and return them as strings in the result (`{ code, stdout, stderr }`). Custom `stdout`/`stderr` streams take precedence over buffering for the corresponding channel (default: `false`).
 - `env` — environment variables passed to the WASI instance (default: `process.env`).
-- `preopens` — WASI preopened directories mapping guest paths to host paths (default: `{ ".": process.cwd() }`). Absolute paths passed as args are auto-added as preopens.
+- `preopens` — WASI preopened directories mapping guest paths to host paths (default: `{ ".": process.cwd() }`, except when `cwd` is `/` or `\\` in which case it's `{}`). Absolute paths passed as args are auto-added as preopens.
+  
+  **Note:** When your app is launched from a GUI (macOS Finder, Windows Explorer, etc.) without a terminal, `process.cwd()` may be `/` (root). In this case, the default preopens excludes `"."` to avoid permission/sandbox issues. You should provide explicit absolute paths in the `preopens` option or as arguments when running in GUI environments.
 - `returnOnExit` — when `true`, `proc_exit` returns the exit code instead of terminating the process (default: `true`).
 - `nodeWasi` — use Node's built-in `node:wasi` instead of the bundled WASI shim. Enabled by default on Node.js for best performance; automatically disabled on Bun and Deno where `node:wasi` is not available, falling back to the bundled shim. Can also be forced on via `RIPGREP_NODE_WASI=1`.
 

@@ -128,6 +128,30 @@ describe("ripgrep", () => {
     expect(res.stdout).toMatch(/^ripgrep \d+/);
   });
 
+  it("works when cwd is root (regression test for GUI launcher issue)", async () => {
+    // When apps are launched from GUI (Finder, Explorer, etc.), cwd may be "/"
+    // This should not break ripgrep - it should require explicit paths
+    const originalCwd = process.cwd();
+    const absHello = originalCwd + "/" + HELLO;
+
+    // Only run this test if we can chdir to root
+    try {
+      process.chdir("/");
+    } catch {
+      // Skip if we can't chdir to root (permissions)
+      return;
+    }
+
+    try {
+      // With cwd=/, relative paths won't work, but absolute paths should
+      const res = await ripgrep(["hello", absHello], { buffer: true });
+      expect(res.code).toBe(0);
+      expect(res.stdout).toContain("hello ripgrep world");
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
   it("searches with explicit --color=never", async () => {
     const res = await ripgrep(["--color=never", "hello", HELLO], {
       buffer: true,
